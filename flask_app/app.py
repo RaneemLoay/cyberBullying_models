@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import re
+import numpy as np
 from nltk import word_tokenize
 from nltk.corpus import stopwords
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -21,7 +22,7 @@ model_bilstm = load_model('../models/bilstm_model.h5')
 model_gru = load_model('../models/gru_model.h5')
 model_cnn = load_model('../models/cnn_model.h5')
 
-
+MAX_SEQUENCE_LENGTH = 100
 # # Define preprocessing functions
 # def preprocess(text):
 #     # Define preprocessing steps similar to your notebook
@@ -97,19 +98,20 @@ def predict():
         # Preprocess text
         processed_text = preprocess(text)
         print(processed_text)
-        # Make predictions using loaded models
-        pred_lstm = model_lstm.predict(processed_text)
-        pred_bilstm = model_bilstm.predict(processed_text)
-        pred_gru = model_gru.predict(processed_text)
-        pred_cnn = model_cnn.predict(processed_text)
 
-        # Example response: return predictions as JSON
-        return jsonify({
-            'lstm': pred_lstm.tolist(),
-            'bilstm': pred_bilstm.tolist(),
-            'gru': pred_gru.tolist(),
-            'cnn': pred_cnn.tolist()
-        })
+        # Tokenize and pad sequence
+        sequence = tokenizer.texts_to_sequences([processed_text])
+        padded_sequence = pad_sequences(sequence, maxlen=MAX_SEQUENCE_LENGTH)
+        padded_sequence = np.array(padded_sequence)
+
+        # Make predictions using loaded models
+        pred_lstm = model_lstm.predict(padded_sequence)
+        pred_bilstm = model_bilstm.predict(padded_sequence)
+        pred_gru = model_gru.predict(padded_sequence)
+        pred_cnn = model_cnn.predict(padded_sequence)
+
+        predicted_class = "bullying" if pred_cnn[0][0] < 0.5 else "not bullying"
+        return jsonify({'prediction': predicted_class})
 
 
 if __name__ == '__main__':
