@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: my-flask-app
+    name: cyberBullying_models
     env: python
     region: oregon
     plan: free
