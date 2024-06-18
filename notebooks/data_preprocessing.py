@@ -1,5 +1,6 @@
-import pandas as pd
 import nltk
+import pandas as pd
+# import nltk
 import string
 import re
 from nltk import word_tokenize
@@ -9,7 +10,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
 import numpy as np
-from sklearn.model_selection import train_test_split
+# from sklearn.model_selection import train_test_split
 
 nltk.download('stopwords')
 nltk.download('punkt')

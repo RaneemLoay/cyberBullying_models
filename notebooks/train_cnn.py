@@ -20,7 +20,7 @@ tokenizer = Tokenizer(num_words=5000)
 tokenizer.fit_on_texts(X_train)
 
 # Save tokenizer to file
-with open('../flask_app/static/tokenizer.pkl', 'wb') as handle:
+with open('../static/tokenizer.pkl', 'wb') as handle:
     pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
