@@ -44,7 +44,9 @@ def index():
 @app.route('/predict', methods=['POST'])
 def predict():
     if request.method == 'POST':
-        text = request.form['text']
+        # text = request.form['text']
+        data = request.get_json()
+        text = data['text']
         try:
             # Preprocess text
             processed_text = preprocess(text)
