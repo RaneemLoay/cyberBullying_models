@@ -64,10 +64,12 @@ def predict():
             pred_cnn = model_cnn.predict(padded_sequence)
 
             predicted_class = "bullying" if pred_cnn[0][0] < 0.5 else "not bullying"
+            print(f"text: {text}")
+            print(f"prediction: {predicted_class}")
             return jsonify({'prediction': predicted_class})
         except Exception as e:
             print(f"Error during prediction: {e}")
-            return jsonify({'error': 'Error during prediction'}), 500
+            return jsonify({'error': 'Error during prediction'}), 505
 
 if __name__ == '__main__':
     # port = int(os.environ.get('PORT', 8080))
