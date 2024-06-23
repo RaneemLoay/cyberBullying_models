@@ -7,6 +7,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Embedding, LSTM, Dense, SpatialDropout1D
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.regularizers import l2
+from sklearn.metrics import classification_report
+from sklearn.utils.class_weight import compute_class_weight
 
 # Load preprocessed data
 df_clean = pd.read_csv('../data/preprocessed_data.csv')
