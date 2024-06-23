@@ -11,46 +11,60 @@ from tensorflow.keras.regularizers import l2
 # Load preprocessed data
 df_clean = pd.read_csv('../data/preprocessed_data.csv')
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(df_clean['text'], df_clean['label'], test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(data['text'], data['label'], test_size=0.2, random_state=42)
 
 # Tokenize the text
-tokenizer = Tokenizer(num_words=5000)
+tokenizer = Tokenizer(num_words=20000)
 tokenizer.fit_on_texts(X_train)
 X_train_seq = tokenizer.texts_to_sequences(X_train)
 X_test_seq = tokenizer.texts_to_sequences(X_test)
 
 # Pad the sequences
-max_len = 100  # or your chosen sequence length
+max_len = 100  # you can choose an appropriate length
 X_train_pad = pad_sequences(X_train_seq, maxlen=max_len)
 X_test_pad = pad_sequences(X_test_seq, maxlen=max_len)
 
-# Convert labels to categorical format if needed
+# Convert labels to numerical format
 y_train_enc = to_categorical(y_train)
 y_test_enc = to_categorical(y_test)
 
+# Print shapes for verification
+print(f'Training data shape: {X_train_pad.shape}')
+print(f'Training labels shape: {y_train_enc.shape}')
+print(f'Test data shape: {X_test_pad.shape}')
+print(f'Test labels shape: {y_test_enc.shape}')
+
+# Calculate class weights to handle class imbalance
+class_weights = compute_class_weight(class_weight='balanced', classes=np.unique(data['label']), y=data['label'])
+class_weights = {i : class_weights[i] for i in range(len(class_weights))}
+
 from tensorflow.keras.layers import Bidirectional
 
-# Define the BiLSTM model
-model_bilstm = Sequential()
-model_bilstm.add(Embedding(input_dim=5000, output_dim=100, input_length=max_len))
-model_bilstm.add(SpatialDropout1D(0.3))
-model_bilstm.add(Bidirectional(LSTM(100, dropout=0.3, recurrent_dropout=0.3)))
-model_bilstm.add(Dense(2, activation='softmax'))
+# Build the model
+embedding_dim = 300
+model = Sequential()
+model.add(Embedding(input_dim=20000, output_dim=embedding_dim, input_length=max_len))
+model.add(SpatialDropout1D(0.2))
+model.add(Bidirectional(LSTM(128, return_sequences=True, dropout=0.2, recurrent_dropout=0.2)))
+model.add(Bidirectional(LSTM(128, dropout=0.2, recurrent_dropout=0.2)))
+model.add(Dense(64, activation='relu', kernel_regularizer=l2(0.01)))
+model.add(Dropout(0.5))
+model.add(Dense(2, activation='softmax'))
 
-# Compile the model
-model_bilstm.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-# Implement early stopping
-early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
-
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Train the model
-history_bilstm = model_bilstm.fit(X_train_pad, y_train_enc, epochs=10, batch_size=32, validation_split=0.2, callbacks=[early_stopping])
+early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+history_bilstm = model.fit(X_train_pad, y_train_enc, epochs=10, batch_size=32,validation_split=0.1, callbacks=[early_stopping], class_weight=class_weights)
 
 # Evaluate the model
-loss_bilstm, accuracy_bilstm = model_bilstm.evaluate(X_test_pad, y_test_enc, verbose=2)
-print(f'BiLSTM Accuracy: {accuracy_bilstm * 100:.2f}%')
+accuracy = model.evaluate(X_test_pad, y_test_enc, verbose=2)[1]
+print(f'Test accuracy: {accuracy * 100:.2f}%')
+
+# Generate classification report
+y_pred = model.predict(X_test_pad)
+y_pred_classes = np.argmax(y_pred, axis=1)
+print(classification_report(y_test, y_pred_classes, target_names=['not bullying', 'bullying']))
 
 # Save the model
 model_bilstm.save('../models/bilstm_model.h5')
