@@ -184,18 +184,32 @@ def main():
 
     print(df.head())
 
+   augmented_text = []
+    # Apply augmentation techniques
+    # if lbl.strip() == 'bullying':
+    
     clean_text = []
     i = 0
     for text, lbl in zip(textBody, label):
         temp = preprocess(text)
-        if(temp == '') :
-            continue
+        if temp == '':
+          continue
+        # print(temp)
+        # print(lbl.strip())
         clean_text.append([temp, lbl.strip()])
-        print(clean_text[i])
-        print(i)
+        augmented_text.append([synonym_replacement(temp), lbl.strip()])
+        augmented_text.append([add_noise(temp), lbl.strip()])
+        augmented_text.append([random_deletion(temp), lbl.strip()])
+        augmented_text.append([random_swap(temp), lbl.strip()])
+        # augmented_text.append([back_translate(text), lbl])
+        # print(clean_text[i])
+        # print(i)
         i = i + 1
-
-    data = pd.DataFrame(clean_text, columns=['text', 'label'])
+    # Combine original and augmented data
+    all_text = clean_text + augmented_text
+    
+    # Convert to DataFrame
+    data = pd.DataFrame(all_text, columns=['text', 'label'])
 
     # Check for nulls and duplicates
     print(data.isnull().sum())
