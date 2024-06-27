@@ -1,22 +1,23 @@
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, LSTM, Dense, SpatialDropout1D
+from tensorflow.keras.layers import Embedding, LSTM, Dense, SpatialDropout1D,Dropout
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.regularizers import l2
 from sklearn.metrics import classification_report
 from sklearn.utils.class_weight import compute_class_weight
 
 # Load preprocessed data
-df_clean = pd.read_csv('../data/preprocessed_data.csv')
+data = pd.read_csv('../data/preprocessed_data_clean_after_augmentation.csv')
 
 X_train, X_test, y_train, y_test = train_test_split(data['text'], data['label'], test_size=0.2, random_state=42)
 
 # Tokenize the text
-tokenizer = Tokenizer(num_words=20000)
+tokenizer = Tokenizer(num_words=50000)
 tokenizer.fit_on_texts(X_train)
 X_train_seq = tokenizer.texts_to_sequences(X_train)
 X_test_seq = tokenizer.texts_to_sequences(X_test)
@@ -45,7 +46,7 @@ from tensorflow.keras.layers import Bidirectional
 # Build the model
 embedding_dim = 300
 model = Sequential()
-model.add(Embedding(input_dim=20000, output_dim=embedding_dim, input_length=max_len))
+model.add(Embedding(input_dim=50000, output_dim=embedding_dim, input_length=max_len))
 model.add(SpatialDropout1D(0.2))
 model.add(Bidirectional(LSTM(128, return_sequences=True, dropout=0.2, recurrent_dropout=0.2)))
 model.add(Bidirectional(LSTM(128, dropout=0.2, recurrent_dropout=0.2)))
@@ -69,4 +70,4 @@ y_pred_classes = np.argmax(y_pred, axis=1)
 print(classification_report(y_test, y_pred_classes, target_names=['not bullying', 'bullying']))
 
 # Save the model
-model_bilstm.save('../models/bilstm_model.h5')
+model.save('../models/bilstm_model.h5')
