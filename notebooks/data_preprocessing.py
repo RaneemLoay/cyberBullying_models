@@ -141,10 +141,16 @@ def synonym_replacement(text):
 # Back-translation using googletrans library
 translator = Translator()
 
-def back_translate(text):
-    translated = translator.translate(text, src='ar', dest='en').text
-    back_translated = translator.translate(translated, src='en', dest='ar').text
-    return back_translated
+def back_translate(text, src='ar', dest='en'):
+    try:
+        translated = translator.translate(text, src=src, dest=dest).text
+        # time.sleep(1)  # To prevent hitting the translation API limit
+        back_translated = translator.translate(translated, src=dest, dest=src).text
+        # time.sleep(1)
+        return back_translated
+    except Exception as e:
+        print(f"Translation error: {e}")
+        return text
 
 # Noise injection by adding random characters
 def add_noise(text):
@@ -178,16 +184,30 @@ def random_swap(text, n=1):
 
 def main():
     # Load dataset
-    df = pd.read_csv('D:/pyCharm python/cyberBullyingGP/data/cyber_bullying(11000).csv')
-    textBody = df['body']
+    df = pd.read_csv('../data/clean_and_augmented_data_with_translate.csv')
+    textBody = df['text']
     label = df['label']
 
     print(df.head())
 
-   augmented_text = []
-    # Apply augmentation techniques
-    # if lbl.strip() == 'bullying':
-    
+    print('Data shape collected text:', df.shape)
+    print('Label value counts:', df['label'].value_counts())
+
+    # augmented_text = []
+    # # Apply augmentation techniques
+    # # if lbl.strip() == 'bullying':
+    # i = 0
+    # # Apply augmentation techniques
+    # for text, lbl in zip(textBody, label):
+    #     augmented_text.append([synonym_replacement(text), lbl])
+    #     augmented_text.append([back_translate(text), lbl])
+    #     augmented_text.append([add_noise(text), lbl])
+    #     augmented_text.append([random_deletion(text), lbl])
+    #     augmented_text.append([random_swap(text), lbl])
+    #
+    # data = pd.DataFrame(augmented_text, columns=['text', 'label'])
+    # print('Data shape augmanted text:', data.shape)
+    # print('Label value counts:', data['label'].value_counts())
     clean_text = []
     i = 0
     for text, lbl in zip(textBody, label):
@@ -196,20 +216,20 @@ def main():
           continue
         # print(temp)
         # print(lbl.strip())
-        clean_text.append([temp, lbl.strip()])
-        augmented_text.append([synonym_replacement(temp), lbl.strip()])
-        augmented_text.append([add_noise(temp), lbl.strip()])
-        augmented_text.append([random_deletion(temp), lbl.strip()])
-        augmented_text.append([random_swap(temp), lbl.strip()])
+        # clean_text.append([temp, lbl.strip()])
         # augmented_text.append([back_translate(text), lbl])
-        # print(clean_text[i])
-        # print(i)
+        clean_text.append([temp, lbl])
+        print(clean_text[i])
+        print(i)
         i = i + 1
+
     # Combine original and augmented data
-    all_text = clean_text + augmented_text
-    
+    # all_text = clean_text + augmented_text
+    all_text = clean_text
     # Convert to DataFrame
     data = pd.DataFrame(all_text, columns=['text', 'label'])
+    print('Data shape total text:', data.shape)
+    print('Label value counts:', data['label'].value_counts())
 
     # Check for nulls and duplicates
     print(data.isnull().sum())
@@ -227,10 +247,10 @@ def main():
     print('Data shape after cleaning:', data.shape)
 
     # Create a mapping of labels to integers
-    label_mapping = {'not bullying': 0, 'bullying': 1}
-    data['label'] = data['label'].map(label_mapping)
+    # label_mapping = {'not bullying': 0, 'bullying': 1}
+    # data['label'] = data['label'].map(label_mapping)
 
-    data.to_csv('../data/preprocessed_data.csv', index=False)
+    data.to_csv('../data/preprocessed_data_clean_after_augmentation.csv', index=False)
 
     # Verify the mapping
     print(data['label'].value_counts())
