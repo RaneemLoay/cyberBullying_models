@@ -8,6 +8,7 @@ from nltk.corpus import stopwords
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pickle
 from tensorflow.keras.models import load_model
+from joblib import load
 from notebooks.data_preprocessing import preprocess
 
 app = Flask(__name__)
@@ -18,9 +19,10 @@ model_lstm = None
 model_bilstm = None
 model_gru = None
 model_cnn = None
+model_svm = None
 
 def load_resources():
-    global tokenizer, model_lstm, model_bilstm, model_gru, model_cnn
+    global tokenizer, model_lstm, model_bilstm, model_gru, model_cnn ,model_svm
     if tokenizer is None:
         with open('./static/tokenizer.pkl', 'rb') as handle:
             tokenizer = pickle.load(handle)
@@ -32,6 +34,8 @@ def load_resources():
         model_gru = load_model('./models/gru_model.h5')
     if model_cnn is None:
         model_cnn = load_model('./models/cnn_model.h5')
+    if model_svm is None:
+        model_svm = load('./models/svm_model.joblib')
 
 load_resources()
 
@@ -62,6 +66,7 @@ def predict():
             pred_bilstm = model_bilstm.predict(padded_sequence)
             pred_gru = model_gru.predict(padded_sequence)
             pred_cnn = model_cnn.predict(padded_sequence)
+            # pred_svm = model_svm.predict(sequence)
 
             predicted_class = "bullying" if pred_cnn[0][0] < 0.5 else "not bullying"
             print(f"text: {text}")
