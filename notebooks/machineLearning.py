@@ -32,6 +32,9 @@ data['tokens'] = data['text'].apply(lambda x: nltk.word_tokenize(x))
 tfidf_vectorizer = TfidfVectorizer()
 tfidf_matrix = tfidf_vectorizer.fit_transform([' '.join(tokens) for tokens in data['tokens']])
 
+with open('tfidf_vectorizer.pkl', 'wb') as f:
+    pickle.dump(tfidf_vectorizer, f)
+    
 # Feature Extraction with N-grams (using CountVectorizer)
 ngram_vectorizer = CountVectorizer(ngram_range=(2, 3))
 ngram_matrix = ngram_vectorizer.fit_transform([' '.join(tokens) for tokens in data['tokens']])
