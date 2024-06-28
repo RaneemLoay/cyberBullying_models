@@ -22,10 +22,12 @@ model_cnn = None
 model_svm = None
 
 def load_resources():
-    global tokenizer, model_lstm, model_bilstm, model_gru, model_cnn ,model_svm
+    global tokenizer, tfidf_vectorizer, model_lstm, model_bilstm, model_gru, model_cnn ,model_svm
     if tokenizer is None:
         with open('./static/tokenizer.pkl', 'rb') as handle:
             tokenizer = pickle.load(handle)
+    if tfidf_vectorizer is None:
+        tfidf_vectorizer = TfidfVectorizer()
     if model_lstm is None:
         model_lstm = load_model('./models/lstm_model.h5')
     if model_bilstm is None:
@@ -66,9 +68,11 @@ def predict():
             pred_bilstm = model_bilstm.predict(padded_sequence)
             pred_gru = model_gru.predict(padded_sequence)
             pred_cnn = model_cnn.predict(padded_sequence)
-            # pred_svm = model_svm.predict(sequence)
+            
+            new_text_tfidf = tfidf_vectorizer.transform(processed_text)
+            pred_svm = model_svm.predict(new_text_tfidf)
 
-            predicted_class = "bullying" if pred_cnn[0][0] < 0.5 else "not bullying"
+            predicted_class = "bullying" if pred_svm[0][0] < 0.5 else "not bullying"
             print(f"text: {text}")
             print(f"prediction: {predicted_class}")
             return jsonify({'prediction': predicted_class})
