@@ -10,6 +10,7 @@ import pickle
 from tensorflow.keras.models import load_model
 from joblib import load
 from notebooks.data_preprocessing import preprocess
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 app = Flask(__name__)
 
